@@ -32,61 +32,40 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class DamperPart implements PartInterface, PartResetInterface
 {
-    private $parts = [];
-
-    public function __construct(...$parts)
+    /** @var int|float */
+    protected $lastValue;
+    /**
+     * @inheritDoc
+     */
+    public function regulateValue($value)
     {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
+        return $this->lastValue = ($value + $this->lastValue) / 2.0;
     }
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
+    public function reset()
     {
-        $this->parts[] = $part;
-        return $this;
+        $this->lastValue = 0;
     }
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @return float|int
      */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
+    public function getLastValue()
     {
-        return $this->parts;
+        return $this->lastValue;
+    }
+
+    /**
+     * @param float|int $lastValue
+     * @return DamperPart
+     */
+    public function setLastValue($lastValue): DamperPart
+    {
+        $this->lastValue = $lastValue;
+        return $this;
     }
 }

@@ -32,61 +32,51 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Feature;
 
+use Ikarus\SPS\Regulator\FeaturedRegulatorInterface;
 use Ikarus\SPS\Regulator\Part\PartInterface;
 
-abstract class AbstractRegulator implements RegulatorInterface
+interface FeatureInterface
 {
-    private $parts = [];
-
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
+    /**
+     * Called on first regulation request
+     *
+     * @param FeaturedRegulatorInterface $regulator
+     * @return void
+     */
+    public function regulatorWillLaunch(FeaturedRegulatorInterface $regulator);
 
     /**
+     * Called to reset the regulation parts
+     *
+     * @param FeaturedRegulatorInterface $regulator
+     * @return void
+     */
+    public function regulatorReset(FeaturedRegulatorInterface $regulator);
+
+    /**
+     * Called before regulation process will start
+     *
+     * @param int|float $requiredValue
+     * @param int|float $existingValue
+     * @return void
+     */
+    public function regulatorWillProcess(FeaturedRegulatorInterface $regulator, &$requiredValue, &$existingValue);
+
+    /**
+     * @param FeaturedRegulatorInterface $regulator
      * @param PartInterface $part
-     * @return $this
+     * @param int|float $value
+     * @return int|float
      */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
-        return $this;
-    }
+    public function regulatorPartProcess(FeaturedRegulatorInterface $regulator, PartInterface $part, $value);
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @param FeaturedRegulatorInterface $regulator
+     * @param int|float $requiredValue
+     * @param int|float $existingValue
+     * @return void
      */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
-    {
-        return $this->parts;
-    }
+    public function regulatorDidProcess(FeaturedRegulatorInterface $regulator, $requiredValue, $existingValue);
 }

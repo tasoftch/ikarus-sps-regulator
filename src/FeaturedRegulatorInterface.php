@@ -34,16 +34,17 @@
 
 namespace Ikarus\SPS\Regulator;
 
+use Ikarus\SPS\Regulator\Part\PartInterface;
 
-use Ikarus\SPS\Regulator\Element\DampingElement;
-use Ikarus\SPS\Regulator\Element\ProportionalElement;
-
-class PDRegulator extends CustomRegulator
+interface FeaturedRegulatorInterface extends RegulatorInterface
 {
-	public function __construct(float $kp, float $kd, int $cacheSize = 10)
-	{
-		parent::__construct($cacheSize);
-		$this->addElement(new ProportionalElement($kp));
-		$this->addElement(new DampingElement($kd));
-	}
+    /**
+     * @return PartInterface[]
+     */
+    public function getParts(): array;
+
+    /**
+     * @return static
+     */
+    public function reset();
 }

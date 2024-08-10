@@ -32,26 +32,23 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator\Element;
+use Ikarus\SPS\Regulator\Limits;
+use Ikarus\SPS\Regulator\Part\LimiterPart;
+use PHPUnit\Framework\TestCase;
 
-
-abstract class AbstractTimedElement extends AbstractElement
+class LimiterPartTest extends TestCase
 {
-	private $timeStamp = 0;
+    public function testLimiter() {
+        $lm = new LimiterPart(-1, 1);
 
-	public function __construct($factor)
-	{
-		parent::__construct($factor);
-		$this->timeStamp = microtime(true);
-	}
+        $this->assertEquals(0.5, $lm->regulateValue(0.5));
+        $this->assertEquals(1, $lm->regulateValue(1));
+        $this->assertEquals(1, $lm->regulateValue(1.2));
+        $this->assertEquals(1, $lm->regulateValue(10));
 
-	/**
-	 * @return float
-	 */
-	protected function getOffset() {
-		$ms = microtime(true);
-		$o = $ms-$this->timeStamp;
-		$this->timeStamp = $ms;
-		return $o;
-	}
+        $lm = new LimiterPart(new Limits(-1, 1));
+        $this->assertEquals(-0.5, $lm->regulateValue(-0.5));
+        $this->assertEquals(-1, $lm->regulateValue(-1.2));
+        $this->assertEquals(-1, $lm->regulateValue(-10));
+    }
 }

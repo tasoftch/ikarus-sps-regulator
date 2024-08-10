@@ -32,61 +32,37 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+use Ikarus\SPS\Regulator\Part\IntegralPart;
+use PHPUnit\Framework\TestCase;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class IntegralPartTest extends TestCase
 {
-    private $parts = [];
+    public function testPlainIntegralPart() {
+        $ip = new IntegralPart();
 
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
+        $this->assertEquals(3, $ip->regulateValue(3));
+        $this->assertEquals(5.5, $ip->regulateValue(2.5));
+        $this->assertEquals(6.5, $ip->regulateValue(1));
+        $this->assertEquals(4.5, $ip->regulateValue(-2));
+        $this->assertEquals(3, $ip->regulateValue(-1.5));
+
+        $ip->reset();
+
+        $this->assertEquals(-6, $ip->regulateValue(-6));
     }
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
-        return $this;
+    public function testIntegralPartWithOffset() {
+        $ip = new IntegralPart(3);
+
+        $this->assertEquals(4, $ip->regulateValue(1));
     }
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
+    public function testIntegralPartWithSignSwitch() {
+        $ip = new IntegralPart(0, true);
 
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
-    {
-        return $this->parts;
+        $this->assertEquals(3, $ip->regulateValue(3));
+        $this->assertEquals(6, $ip->regulateValue(3));
+        $this->assertEquals(-3, $ip->regulateValue(-3));
+        $this->assertEquals(-6, $ip->regulateValue(-3));
     }
 }

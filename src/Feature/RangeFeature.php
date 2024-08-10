@@ -32,61 +32,79 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Feature;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
+use Ikarus\SPS\Regulator\FeaturedRegulatorInterface;
+use Ikarus\SPS\Regulator\Limits;
+use Ikarus\SPS\Regulator\Part\RangeAwarePartInterface;
 
-abstract class AbstractRegulator implements RegulatorInterface
+class RangeFeature extends AbstractFeature
 {
-    private $parts = [];
+    /** @var int|float */
+    private $minimum;
+    /** @var int|float */
+    private $maximum;
 
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
+    /** @var int|float */
+    private $range;
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @param int|float|Limits $minimum
+     * @param int|float $maximum
      */
-    public function addPart(PartInterface $part): AbstractRegulator
+    public function __construct($minimum, $maximum = 1)
     {
-        $this->parts[] = $part;
-        return $this;
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
+        if($minimum instanceof Limits) {
+            list($this->minimum, $this->maximum) = $minimum;
+            return;
         }
-        return $this;
+
+        $this->minimum = $minimum;
+        $this->maximum = $maximum;
     }
 
     /**
-     * @return $this
+     * @return float|int
      */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
+    public function getMaximum()
     {
-        return $this->parts;
+        return $this->maximum;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getMinimum()
+    {
+        return $this->minimum;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getRange()
+    {
+        return $this->range;
+    }
+
+    public function regulatorWillProcess(FeaturedRegulatorInterface $regulator, &$requiredValue, &$existingValue)
+    {
+        $range = ( $this->getRange() - $this->getMinimum() ) / ( $this->getMaximum() - $this->getMinimum() );
+
+        foreach($regulator->getParts() as $part) {
+            if($part instanceof RangeAwarePartInterface) {
+                $part->setRange($range);
+            }
+        }
+    }
+
+    /**
+     * @param float|int $range
+     * @return RangeFeature
+     */
+    public function setRange($range)
+    {
+        $this->range = $range;
+        return $this;
     }
 }

@@ -32,61 +32,17 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+use Ikarus\SPS\Regulator\Part\DamperPart;
+use PHPUnit\Framework\TestCase;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class DamperTest extends TestCase
 {
-    private $parts = [];
+    public function testDamper() {
+        $dp = new DamperPart();
 
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
-        return $this;
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
-    {
-        return $this->parts;
+        $this->assertEquals(5, $dp->regulateValue(10));
+        $this->assertEquals(8, $dp->regulateValue(11));
+        $this->assertEquals(6, $dp->regulateValue(4));
+        $this->assertEquals(2, $dp->regulateValue(-2));
     }
 }

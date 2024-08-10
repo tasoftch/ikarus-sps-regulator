@@ -32,61 +32,18 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Factory;
+use Ikarus\SPS\Regulator\AbstractRegulator;
+use Ikarus\SPS\Regulator\Part\DamperPart;
+use Ikarus\SPS\Regulator\Part\IntegralPart;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class PIDRegulatorFactory extends PRegulatorFactory
 {
-    private $parts = [];
-
-    public function __construct(...$parts)
+    function buildRegulator(AbstractRegulator $regulator)
     {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
+        parent::buildRegulator($regulator);
+        $regulator->addPart(new IntegralPart());
+        $regulator->addPart(new DamperPart());
     }
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
-        return $this;
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
-    {
-        return $this->parts;
-    }
 }

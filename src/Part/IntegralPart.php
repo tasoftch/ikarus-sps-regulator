@@ -32,20 +32,82 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
-
-use Ikarus\SPS\Regulator\Element\DampingElement;
-use Ikarus\SPS\Regulator\Element\IntegralElement;
-use Ikarus\SPS\Regulator\Element\ProportionalElement;
-
-class PIDRegulator extends CustomRegulator
+class IntegralPart implements PartInterface, PartResetInterface, TimedPartInterface
 {
-	public function __construct(float $kp, float $ki, float $kd, int $cacheSize = 10)
-	{
-		parent::__construct($cacheSize);
-		$this->addElement(new ProportionalElement($kp));
-		$this->addElement(new IntegralElement($ki));
-		$this->addElement(new DampingElement($kd));
-	}
+    protected $sum;
+
+    private $reset_on_sign_change;
+
+    private $samplingTime = 0.0;
+
+    /**
+     * @param int|float $sum
+     * @param bool $reset_on_sign_change
+     */
+    public function __construct($sum = 0, bool $reset_on_sign_change = false)
+    {
+        $this->sum = $sum;
+        $this->reset_on_sign_change = $reset_on_sign_change;
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+    public function regulateValue($value)
+    {
+        if($this->doesResetOnSignChange()) {
+            $negative = function($v) { return $v < 0; };
+
+            if($negative($this->sum) != $negative($value))
+                $this->reset();
+        }
+        $this->addValue($value);
+        return $this->sum;
+    }
+
+    protected function addValue($value) {
+        if($this->samplingTime > 0)
+            $this->sum += $value * $this->samplingTime;
+        else
+            $this->sum += $value;
+    }
+
+    public function reset()
+    {
+        $this->sum = 0;
+    }
+
+    /**
+     * @return bool
+     */
+    public function doesResetOnSignChange(): bool
+    {
+        return $this->reset_on_sign_change;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getSum()
+    {
+        return $this->sum;
+    }
+
+    /**
+     * @param float|int $sum
+     * @return IntegralPart
+     */
+    public function setSum($sum = 0)
+    {
+        $this->sum = $sum;
+        return $this;
+    }
+
+    public function setSamplingTime(float $time)
+    {
+        $this->samplingTime = $time;
+    }
 }

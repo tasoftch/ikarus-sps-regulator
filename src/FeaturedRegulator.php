@@ -34,59 +34,49 @@
 
 namespace Ikarus\SPS\Regulator;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
+use Ikarus\SPS\Regulator\Feature\FeatureInterface;
 
-abstract class AbstractRegulator implements RegulatorInterface
+class FeaturedRegulator extends AbstractRegulator implements FeaturedRegulatorInterface
 {
-    private $parts = [];
+    private $initial = true;
 
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
+    private $features = [];
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
+    public function addFeature(FeatureInterface $feature) {
+        $this->features[] = $feature;
         return $this;
     }
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
+    public function regulate($requiredValue, $existingValue)
+    {
+        if($this->initial) {
+            $this->initial = false;
+            array_walk($this->features, function(FeatureInterface $feature) {
+                $feature->regulatorWillLaunch($this);
+            });
         }
-        return $this;
+
+        array_walk($this->features, function(FeatureInterface $feature) use (&$requiredValue, &$existingValue) {
+            $feature->regulatorWillProcess($this, $requiredValue, $existingValue);
+        });
+
+        $v = $requiredValue - $existingValue;
+        foreach ($this->getParts() as $part) {
+            array_walk($this->features, function(FeatureInterface $feature) use (&$part, &$v) {
+                $v = $feature->regulatorPartProcess($this, $part, $v);
+            });
+        }
+
+        array_walk($this->features, function(FeatureInterface $feature) use (&$requiredValue, &$existingValue) {
+            $feature->regulatorDidProcess($this, $requiredValue, $existingValue);
+        });
+        return $v;
     }
 
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
+    public function reset()
     {
-        return $this->parts;
+        array_walk($this->features, function(FeatureInterface $feature) {
+            $feature->regulatorReset($this);
+        });
     }
 }

@@ -32,61 +32,24 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+use Ikarus\SPS\Regulator\Part\LimitedIntegralPart;
+use PHPUnit\Framework\TestCase;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class LimitedIntegralPartTest extends TestCase
 {
-    private $parts = [];
+    public function testDefaultIntegralPart() {
+        $ip = new LimitedIntegralPart(-3, 5);
 
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
+        $this->assertEquals(2, $ip->regulateValue(2));
+        $this->assertEquals(4, $ip->regulateValue(2));
+        $this->assertEquals(5, $ip->regulateValue(2));
+        $this->assertEquals(5, $ip->regulateValue(2));
 
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
-        return $this;
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
-    {
-        return $this->parts;
+        $this->assertEquals(3, $ip->regulateValue(-2));
+        $this->assertEquals(1, $ip->regulateValue(-2));
+        $this->assertEquals(-1, $ip->regulateValue(-2));
+        $this->assertEquals(-3, $ip->regulateValue(-2));
+        $this->assertEquals(-3, $ip->regulateValue(-2));
+        $this->assertEquals(-3, $ip->regulateValue(-2));
     }
 }

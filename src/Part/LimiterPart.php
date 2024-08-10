@@ -32,61 +32,37 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
+use Ikarus\SPS\Regulator\Limits;
 
-abstract class AbstractRegulator implements RegulatorInterface
+class LimiterPart implements PartInterface
 {
-    private $parts = [];
-
-    public function __construct(...$parts)
-    {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
+    /** @var int|float */
+    private $minimum;
+    /** @var int|float */
+    private $maximum;
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @param float|int|Limits $minimum
+     * @param float|int $maximum
      */
-    public function addPart(PartInterface $part): AbstractRegulator
+    public function __construct($minimum, $maximum = 1)
     {
-        $this->parts[] = $part;
-        return $this;
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
+        if($minimum instanceof Limits) {
+            list($this->minimum, $this->maximum) = $minimum;
+            return;
         }
-        return $this;
+
+        $this->minimum = $minimum;
+        $this->maximum = $maximum;
     }
 
     /**
-     * @return $this
+     * @inheritDoc
      */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
+    public function regulateValue($value)
     {
-        return $this->parts;
+        return min($this->maximum, max($this->minimum, $value));
     }
 }

@@ -32,59 +32,15 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
-
-use Ikarus\SPS\Regulator\Element\RegulatorElementInterface;
-
-class CustomRegulator extends AbstractRegulator
+interface RangeAwarePartInterface extends PartInterface
 {
-
-
-	/** @var RegulatorElementInterface[] */
-	private $elements = [];
-
-
-
-	/**
-	 * @param RegulatorElementInterface $element
-	 * @return $this
-	 */
-	public function addElement(RegulatorElementInterface $element) {
-		$this->elements[] = $element;
-		return $this;
-	}
-
-	/**
-	 * @param RegulatorElementInterface $element
-	 * @return $this
-	 */
-	public function removeElement(RegulatorElementInterface $element) {
-		if(($idx = array_search($element, $this->elements)) !== false)
-			unset($this->elements[$idx]);
-		return $this;
-	}
-
-	/**
-	 * @return $this
-	 */
-	public function clearElements() {
-		$this->elements = [];
-		return $this;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function regulate($requiredValue, $existingValue)
-	{
-		$e = $requiredValue - $existingValue;
-
-		$v = $e;
-		foreach ($this->elements as $element)
-			$v = $element->regulateValue($v, $this->cache);
-
-		$this->appendDeviation($e);
-		return $v;
-	}
+    /**
+     * Sets the current range to a value between 0.0 and 1.0
+     *
+     * @param float $range
+     * @return void
+     */
+    public function setRange(float $range);
 }

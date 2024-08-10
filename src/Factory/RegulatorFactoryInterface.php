@@ -32,28 +32,11 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator\Element;
+namespace Ikarus\SPS\Regulator\Factory;
 
+use Ikarus\SPS\Regulator\RegulatorInterface;
 
-abstract class AbstractElement implements RegulatorElementInterface
+interface RegulatorFactoryInterface
 {
-	/** @var int|float */
-	private $factor;
-
-	/**
-	 * AbstractElement constructor.
-	 * @param float|int $factor
-	 */
-	public function __construct($factor)
-	{
-		$this->factor = $factor;
-	}
-
-	/**
-	 * @return float|int
-	 */
-	public function getFactor()
-	{
-		return $this->factor;
-	}
+    public function create(RegulatorInterface $regulator = NULL): RegulatorInterface;
 }

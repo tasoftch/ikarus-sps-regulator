@@ -32,61 +32,18 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Feature;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
+use Ikarus\SPS\Regulator\FeaturedRegulatorInterface;
+use Ikarus\SPS\Regulator\Part\PartResetInterface;
 
-abstract class AbstractRegulator implements RegulatorInterface
+class ResetFeature extends AbstractFeature
 {
-    private $parts = [];
-
-    public function __construct(...$parts)
+    public function regulatorReset(FeaturedRegulatorInterface $regulator)
     {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function addPart(PartInterface $part): AbstractRegulator
-    {
-        $this->parts[] = $part;
-        return $this;
-    }
-
-    /**
-     * @param PartInterface $part
-     * @return $this
-     */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
+        foreach($regulator->getParts() as $part) {
+            if($part instanceof PartResetInterface)
+                $part->reset();
         }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
-    {
-        return $this->parts;
     }
 }

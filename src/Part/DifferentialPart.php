@@ -32,17 +32,23 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator\Element;
+namespace Ikarus\SPS\Regulator\Part;
 
-
-interface RegulatorElementInterface
+class DifferentialPart extends DamperPart implements TimedPartInterface
 {
-	/**
-	 * Calculates a adjust value from previous value
-	 *
-	 * @param int|float $value
-	 * @param array $cache
-	 * @return int|float
-	 */
-	public function regulateValue($value, array $cache);
+    private $samplingTime = 0.0;
+
+    public function regulateValue($value)
+    {
+        $d = $value - $this->lastValue;
+        $this->lastValue = $value;
+        if($this->samplingTime > 0)
+            return $d/$this->samplingTime;
+        return $d;
+    }
+
+    public function setSamplingTime(float $time)
+    {
+        $this->samplingTime = $time;
+    }
 }

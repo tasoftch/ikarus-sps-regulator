@@ -32,18 +32,55 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
+use Ikarus\SPS\Regulator\Limits;
 
-use Ikarus\SPS\Regulator\Element\IntegralElement;
-use Ikarus\SPS\Regulator\Element\ProportionalElement;
-
-class PIRegulator extends CustomRegulator
+class LimitedIntegralPart extends IntegralPart
 {
-	public function __construct(float $kp, float $ki, int $cacheSize = 10)
-	{
-		parent::__construct($cacheSize);
-		$this->addElement(new ProportionalElement($kp));
-		$this->addElement(new IntegralElement($ki));
-	}
+    /** @var int|float */
+    private $minimum;
+    /** @var int|float */
+    private $maximum;
+
+    /**
+     * @param int|float|Limits $minimum
+     * @param $maximum
+     * @param $sum
+     * @param bool $reset_on_sign_change
+     */
+    public function __construct($minimum, $maximum = 1, $sum = 0, bool $reset_on_sign_change = false)
+    {
+        parent::__construct($sum, $reset_on_sign_change);
+
+        if($minimum instanceof Limits) {
+            list($this->minimum, $this->maximum) = $minimum;
+            return;
+        }
+
+        $this->minimum = $minimum;
+        $this->maximum = $maximum;
+    }
+
+    protected function addValue($value)
+    {
+        parent::addValue($value);
+        $this->sum = min($this->getMaximum(), max($this->getMinimum(), $this->sum));
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getMinimum()
+    {
+        return $this->minimum;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getMaximum()
+    {
+        return $this->maximum;
+    }
 }

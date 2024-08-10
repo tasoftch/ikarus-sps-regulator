@@ -32,61 +32,34 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class ProportionalPart implements PartInterface
 {
-    private $parts = [];
+    /** @var int|float */
+    private $factor;
 
-    public function __construct(...$parts)
+    /**
+     * @param float|int $factor
+     */
+    public function __construct($factor)
     {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
+        $this->factor = $factor;
     }
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @inheritDoc
      */
-    public function addPart(PartInterface $part): AbstractRegulator
+    public function regulateValue($value)
     {
-        $this->parts[] = $part;
-        return $this;
+        return $value * $this->getFactor();
     }
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @return float|int
      */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
-        }
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
+    public function getFactor()
     {
-        return $this->parts;
+        return $this->factor;
     }
 }

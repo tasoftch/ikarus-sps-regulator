@@ -34,59 +34,74 @@
 
 namespace Ikarus\SPS\Regulator;
 
-use Ikarus\SPS\Regulator\Part\PartInterface;
-
-abstract class AbstractRegulator implements RegulatorInterface
+class Limits implements \ArrayAccess, \Countable
 {
-    private $parts = [];
+    /** @var int|float */
+    private $min;
+    /** @var int|float */
+    private $max;
 
-    public function __construct(...$parts)
+    /**
+     * @param float|int $min
+     * @param float|int $max
+     */
+    public function __construct($min=0, $max=1)
     {
-        $add = function($parts) use (&$add) {
-            foreach($parts as $part) {
-                if($part instanceof PartInterface)
-                    $this->parts[] = $part;
-                elseif(is_iterable($part))
-                    $add($part);
-            }
-        };
-        $add($parts);
+        $this->min = $min;
+        $this->max = $max;
     }
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @return float|int
      */
-    public function addPart(PartInterface $part): AbstractRegulator
+    public function getMin()
     {
-        $this->parts[] = $part;
-        return $this;
+        return $this->min;
     }
 
     /**
-     * @param PartInterface $part
-     * @return $this
+     * @return float|int
      */
-    public function removePart(PartInterface $part): AbstractRegulator {
-        if(($idx = array_search($part, $this->parts, true)) !== false) {
-            unset($this->parts[$idx]);
+    public function getMax()
+    {
+        return $this->max;
+    }
+
+    public function offsetExists($offset): bool
+    {
+        return $offset === 0 || $offset === 1;
+    }
+
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
+    {
+        switch ($offset) {
+            case 0: return $this->min;
+            case 1: return $this->max;
+            default:
+                return false;
         }
-        return $this;
     }
 
-    /**
-     * @return $this
-     */
-    public function clearParts(): AbstractRegulator {
-        $this->parts = [];
-        return $this;
-    }
-
-    /**
-     * @return PartInterface[]
-     */
-    public function getParts(): array
+    #[\ReturnTypeWillChange]
+    public function offsetSet($offset, $value)
     {
-        return $this->parts;
+        switch ($offset) {
+            case 0: $this->min = (float) $value; break;
+            case 1: $this->max = (float) $value; break;
+            default:
+                break;
+        }
+    }
+
+    #[\ReturnTypeWillChange]
+    public function offsetUnset($offset)
+    {
+    }
+
+    #[\ReturnTypeWillChange]
+    public function count()
+    {
+        return 2;
     }
 }

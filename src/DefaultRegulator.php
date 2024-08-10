@@ -32,18 +32,28 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator\Element;
+namespace Ikarus\SPS\Regulator;
 
+use Ikarus\SPS\Regulator\Part\PartResetInterface;
 
-class IntegralElement extends AbstractTimedElement
+class DefaultRegulator extends AbstractRegulator implements FeaturedRegulatorInterface
 {
-	/**
-	 * @inheritDoc
-	 */
-	public function regulateValue($value, array $cache)
-	{
-		$s = array_sum($cache);
-		$ta = $this->getOffset();
-		return $this->getFactor() * $ta * $s;
-	}
+    public function regulate($requiredValue, $existingValue)
+    {
+        $v = $requiredValue - $existingValue;
+        foreach ($this->getParts() as $element)
+            $v = $element->regulateValue($v);
+        return $v;
+    }
+
+    /**
+     * @return $this
+     */
+    public function reset() {
+        foreach($this->getParts() as $part) {
+            if($part instanceof PartResetInterface)
+                $part->reset();
+        }
+        return $this;
+    }
 }

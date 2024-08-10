@@ -32,16 +32,23 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator;
+namespace Ikarus\SPS\Regulator\Part;
 
+use Ikarus\SPS\Regulator\Part\PartInterface;
 
-use Ikarus\SPS\Regulator\Element\ProportionalElement;
-
-class PRegulator extends CustomRegulator
+class RoundPart implements PartInterface
 {
-	public function __construct(float $k, int $cacheSize = 10)
-	{
-		parent::__construct($cacheSize);
-		$this->addElement( new ProportionalElement($k) );
-	}
+    private $precision;
+
+    public function __construct(int $precision) {
+        $this->precision = $precision;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function regulateValue($value)
+    {
+        return round($value, $this->precision);
+    }
 }

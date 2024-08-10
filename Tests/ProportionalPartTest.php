@@ -32,21 +32,20 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator\Element;
+use Ikarus\SPS\Regulator\Part\ProportionalPart;
+use PHPUnit\Framework\TestCase;
 
-/**
- * The proportional element of a regulator just multiplies the error value with a factor.
- * It is the simplest way to regulate.
- *
- * @package Ikarus\SPS\Regulator\Element
- */
-class ProportionalElement extends AbstractElement
+class ProportionalPartTest extends TestCase
 {
-	/**
-	 * @inheritDoc
-	 */
-	public function regulateValue($value, array $cache)
-	{
-		return $value * $this->getFactor();
-	}
+    public function testProportionalPart() {
+        $pp = new ProportionalPart(3);
+
+        $this->assertEquals(9, $pp->regulateValue(3));
+        $this->assertEquals(-9, $pp->regulateValue(-3));
+
+        $pp = new ProportionalPart(-2);
+
+        $this->assertEquals(4, $pp->regulateValue(-2));
+        $this->assertEquals(-4, $pp->regulateValue(2));
+    }
 }

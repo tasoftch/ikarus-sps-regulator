@@ -32,16 +32,31 @@
  *
  */
 
-namespace Ikarus\SPS\Regulator\Element;
+namespace Ikarus\SPS\Regulator\Feature;
 
+use Ikarus\SPS\Regulator\FeaturedRegulatorInterface;
+use Ikarus\SPS\Regulator\Part\PartInterface;
 
-class DampingElement extends AbstractTimedElement
+abstract class AbstractFeature implements FeatureInterface
 {
-	/**
-	 * @inheritDoc
-	 */
-	public function regulateValue($value, $deviation, array $cache)
-	{
-		return $value + $this->getFactor() * ($deviation - ($cache[0] ?? 0)) * $this->getOffset();
-	}
+    public function regulatorWillLaunch(FeaturedRegulatorInterface $regulator)
+    {
+    }
+
+    public function regulatorReset(FeaturedRegulatorInterface $regulator)
+    {
+    }
+
+    public function regulatorWillProcess(FeaturedRegulatorInterface $regulator, &$requiredValue, &$existingValue)
+    {
+    }
+
+    public function regulatorPartProcess(FeaturedRegulatorInterface $regulator, PartInterface $part, $value)
+    {
+        return $value;
+    }
+
+    public function regulatorDidProcess(FeaturedRegulatorInterface $regulator, $requiredValue, $existingValue)
+    {
+    }
 }
