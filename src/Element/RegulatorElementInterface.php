@@ -38,6 +38,8 @@ namespace Ikarus\SPS\Regulator\Element;
 interface RegulatorElementInterface
 {
 	/**
+	 * Calculates a adjust value from previous value
+	 *
 	 * @param int|float $value
 	 * @param array $cache
 	 * @return int|float

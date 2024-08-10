@@ -80,9 +80,9 @@ class CustomRegulator extends AbstractRegulator
 	{
 		$e = $requiredValue - $existingValue;
 
-		$v = 0;
+		$v = $e;
 		foreach ($this->elements as $element)
-			$v += $element->regulateValue($e, $this->cache);
+			$v = $element->regulateValue($v, $this->cache);
 
 		$this->appendDeviation($e);
 		return $v;

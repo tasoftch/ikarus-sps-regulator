@@ -40,8 +40,8 @@ class DampingElement extends AbstractTimedElement
 	/**
 	 * @inheritDoc
 	 */
-	public function regulateValue($value, array $cache)
+	public function regulateValue($value, $deviation, array $cache)
 	{
-		return $this->getFactor() * ($value - ($cache[0] ?? 0)) * $this->getOffset();
+		return $value + $this->getFactor() * ($deviation - ($cache[0] ?? 0)) * $this->getOffset();
 	}
 }
